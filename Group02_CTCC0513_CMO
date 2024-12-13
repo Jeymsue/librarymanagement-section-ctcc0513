@@ -1,0 +1,353 @@
+package librarymanager;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.LinkedList;
+import java.util.Stack;
+import javax.swing.table.DefaultTableModel;
+
+public class LibraryManager {
+
+    private LinkedList<Book> bookList = new LinkedList<>();
+    private Stack<Action> undoStack = new Stack<>();
+
+    private JFrame frame;
+    private JTextField titleField, authorField, yearField;
+    private JTable bookTable;
+    private DefaultTableModel tableModel;
+
+    public LibraryManager() {
+        showLoginPage();
+    }
+
+    private void showLoginPage() {
+        JFrame loginFrame = new JFrame("Library Book Manager - Login");
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loginFrame.setSize(400, 300);
+        loginFrame.setLayout(new GridBagLayout());
+
+        JPanel loginPanel = new JPanel(new GridBagLayout());
+        loginPanel.setBackground(new Color(230, 240, 255));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setForeground(new Color(50, 50, 100));
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        loginPanel.add(usernameLabel, gbc);
+
+        JTextField usernameField = new JTextField();
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        loginPanel.add(usernameField, gbc);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setForeground(new Color(50, 50, 100));
+        passwordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        loginPanel.add(passwordLabel, gbc);
+
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        loginPanel.add(passwordField, gbc);
+
+        JButton loginButton = new JButton("Login");
+        loginButton.setBackground(new Color(100, 150, 200));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        loginPanel.add(loginButton, gbc);
+
+        JLabel messageLabel = new JLabel("", SwingConstants.CENTER);
+        messageLabel.setForeground(Color.RED);
+        messageLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        loginPanel.add(messageLabel, gbc);
+
+        loginButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+
+            if (username.equals("admin") && password.equals("admin123")) {
+                loginFrame.dispose();
+                initializeGUI();
+            } else {
+                messageLabel.setText("Invalid username or password.");
+            }
+        });
+
+        loginFrame.add(loginPanel);
+        loginFrame.setVisible(true);
+    }
+
+    private void initializeGUI() {
+        frame = new JFrame("Library Book Manager");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 400);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(230, 240, 255));
+
+        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        inputPanel.setBackground(new Color(230, 240, 255));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titleLabel = new JLabel("Title:");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setForeground(new Color(50, 50, 100));
+        inputPanel.add(titleLabel);
+
+        titleField = new JTextField();
+        titleField.setFont(new Font("Arial", Font.PLAIN, 14));
+        inputPanel.add(titleField);
+
+        JLabel authorLabel = new JLabel("Author:");
+        authorLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        authorLabel.setForeground(new Color(50, 50, 100));
+        inputPanel.add(authorLabel);
+
+        authorField = new JTextField();
+        authorField.setFont(new Font("Arial", Font.PLAIN, 14));
+        inputPanel.add(authorField);
+
+        JLabel yearLabel = new JLabel("Year:");
+        yearLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        yearLabel.setForeground(new Color(50, 50, 100));
+        inputPanel.add(yearLabel);
+
+        yearField = new JTextField();
+        yearField.setFont(new Font("Arial", Font.PLAIN, 14));
+        inputPanel.add(yearField);
+
+        JButton addButton = new JButton("Add Book");
+        addButton.setFont(new Font("Arial", Font.BOLD, 14));
+        addButton.setBackground(new Color(100, 150, 200));
+        addButton.setForeground(Color.WHITE);
+
+        JButton removeButton = new JButton("Remove Book");
+        removeButton.setFont(new Font("Arial", Font.BOLD, 14));
+        removeButton.setBackground(new Color(100, 150, 200));
+        removeButton.setForeground(Color.WHITE);
+
+        JButton searchButton = new JButton("Search");
+        searchButton.setFont(new Font("Arial", Font.BOLD, 14));
+        searchButton.setBackground(new Color(100, 150, 200));
+        searchButton.setForeground(Color.WHITE);
+
+        JButton sortButton = new JButton("Sort");
+        sortButton.setFont(new Font("Arial", Font.BOLD, 14));
+        sortButton.setBackground(new Color(100, 150, 200));
+        sortButton.setForeground(Color.WHITE);
+
+        JButton backButton = new JButton("Back");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setBackground(new Color(100, 150, 200));
+        backButton.setForeground(Color.WHITE);
+
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
+        logoutButton.setBackground(new Color(100, 150, 200));
+        logoutButton.setForeground(Color.WHITE);
+
+        addButton.addActionListener(e -> addBook());
+        removeButton.addActionListener(e -> removeBook());
+        searchButton.addActionListener(e -> searchBook());
+        sortButton.addActionListener(e -> sortBooks());
+        backButton.addActionListener(e -> displayBooks());
+        logoutButton.addActionListener(e -> {
+            frame.dispose();
+            showLoginPage();
+        });
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(230, 240, 255));
+        buttonPanel.add(addButton);
+        buttonPanel.add(removeButton);
+        buttonPanel.add(searchButton);
+        buttonPanel.add(sortButton);
+        buttonPanel.add(backButton);
+        buttonPanel.add(logoutButton);
+
+        String[] columnNames = {"Title", "Author", "Year"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+        bookTable = new JTable(tableModel);
+        bookTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        bookTable.setRowHeight(20);
+        bookTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        bookTable.getTableHeader().setBackground(new Color(200, 220, 240));
+
+        panel.add(inputPanel, BorderLayout.NORTH);
+        panel.add(buttonPanel, BorderLayout.CENTER);
+        frame.add(panel, BorderLayout.NORTH);
+        frame.add(new JScrollPane(bookTable), BorderLayout.CENTER);
+
+        frame.setVisible(true);
+    }
+
+    private void addBook() {
+        String title = titleField.getText().trim();
+        String author = authorField.getText().trim();
+        String year = yearField.getText().trim();
+
+        if (title.isEmpty() || author.isEmpty() || year.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Please fill all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            Book book = new Book(title, author, Integer.parseInt(year));
+            bookList.add(book);
+            undoStack.push(new Action("Add", book));
+            displayBooks();
+
+            titleField.setText("");
+            authorField.setText("");
+            yearField.setText("");
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(frame, "Year must be a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void removeBook() {
+    int selectedRow = bookTable.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(frame, "Please select a book to remove.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    int confirmation = JOptionPane.showConfirmDialog(
+            frame,
+            "Are you sure you want to remove this book?",
+            "Confirm Remove",
+            JOptionPane.YES_NO_OPTION
+    );
+
+    if (confirmation != JOptionPane.YES_OPTION) {
+        return;
+    }
+
+    String title = (String) tableModel.getValueAt(selectedRow, 0);
+    Book bookToRemove = null;
+    for (Book book : bookList) {
+        if (book.getTitle().equals(title)) {
+            bookToRemove = book;
+            break;
+        }
+    }
+
+    if (bookToRemove != null) {
+        bookList.remove(bookToRemove);
+        undoStack.push(new Action("Remove", bookToRemove));
+        displayBooks();
+    }
+}
+
+    private void searchBook() {
+        String query = JOptionPane.showInputDialog(frame, "Enter title or author to search:");
+        if (query == null || query.trim().isEmpty()) {
+            return;
+        }
+
+        query = query.toLowerCase();
+        DefaultTableModel searchModel = new DefaultTableModel(new String[]{"Title", "Author", "Year"}, 0);
+
+        for (Book book : bookList) {
+            if (book.getTitle().toLowerCase().contains(query) || book.getAuthor().toLowerCase().contains(query)) {
+                searchModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), book.getYear()});
+            }
+        }
+
+        bookTable.setModel(searchModel);
+    }
+
+    private void sortBooks() {
+        bookList.sort((b1, b2) -> b1.getTitle().compareToIgnoreCase(b2.getTitle()));
+        displayBooks();
+    }
+
+    private void displayBooks() {
+        tableModel.setRowCount(0);
+        for (Book book : bookList) {
+            tableModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), book.getYear()});
+        }
+        bookTable.setModel(tableModel);
+    }
+
+    private void undoAction() {
+        if (undoStack.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "No actions to undo.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        Action lastAction = undoStack.pop();
+        switch (lastAction.getType()) {
+            case "Add":
+                bookList.remove(lastAction.getBook());
+                break;
+            case "Remove":
+                bookList.add(lastAction.getBook());
+                break;
+        }
+        displayBooks();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(LibraryManager::new);
+    }
+
+    private static class Book {
+        private final String title;
+        private final String author;
+        private final int year;
+
+        public Book(String title, String author, int year) {
+            this.title = title;
+            this.author = author;
+            this.year = year;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public int getYear() {
+            return year;
+        }
+    }
+
+    private static class Action {
+        private final String type;
+        private final Book book;
+
+        public Action(String type, Book book) {
+            this.type = type;
+            this.book = book;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public Book getBook() {
+            return book;
+        }
+    }
+    
+}
+
